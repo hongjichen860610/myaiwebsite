@@ -5,24 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>陈洪机 · JAVA 工程师 | 个人 AI 主页</title>
 <meta name="description" content="陈洪机，16 年工作经验，JAVA 工程师 / 全栈开发 / 项目经理，长期服务电信行业。">
-<meta name="theme-color" content="#f4f3ef">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232b48d8'/%3E%3Ctext x='32' y='43' font-family='sans-serif' font-size='30' fill='white' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#f2f1ec">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%237c7b66'/%3E%3Ctext x='32' y='43' font-family='sans-serif' font-size='30' fill='white' text-anchor='middle'%3EC%3C/text%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#f4f3ef;
-    --bg-2:#ecebe5;
+    --bg:#f2f1ec;
+    --bg-2:#e7e5dc;
     --surface:#ffffff;
-    --ink:#16171b;
-    --ink-2:#3c3f45;
-    --muted:#757a82;
-    --line:#e3e1da;
-    --line-strong:#d6d3c9;
-    --accent:#2b48d8;
-    --accent-soft:#e9ecff;
-    --green:#1a9c6b;
-    --radius-l:26px;
-    --shadow-s:0 1px 2px rgba(22,23,27,.04), 0 8px 24px -12px rgba(22,23,27,.14);
-    --shadow-l:0 24px 60px -24px rgba(22,23,27,.28), 0 2px 6px rgba(22,23,27,.04);
+    --ink:#1d1d1d;
+    --ink-2:#3f4543;
+    --muted:#6c695f;
+    --line:#e1dfd4;
+    --line-strong:#cfcdc0;
+    --accent:#7c7b66;
+    --accent-soft:#d2dcda;
+    --accent-warm:#c96b32;
+    --green:#1d9e75;
+    --radius-l:12px;
+    --shadow-s:0 1px 2px rgba(29,29,29,.03);
+    --shadow-l:0 12px 32px -18px rgba(29,29,29,.16);
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
@@ -30,25 +31,20 @@
     margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at 85% -100px, rgba(43,72,216,.10), transparent 60%),
-      radial-gradient(900px 500px at -10% 10%, rgba(26,156,107,.06), transparent 55%),
-      var(--bg);
+    background:var(--bg);
     font-size:15px;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
   a{color:inherit}
   button{font-family:inherit}
-  ::selection{background:rgba(43,72,216,.18)}
+  ::selection{background:rgba(124,123,102,.22)}
 
   /* ---------- 顶栏 ---------- */
   .topbar{
     position:sticky;top:0;z-index:40;
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-    background:rgba(244,243,239,.78);
-    border-bottom:1px solid rgba(22,23,27,.06);
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
   }
   .topbar-inner{
     max-width:1200px;margin:0 auto;padding:14px 32px;
@@ -88,15 +84,23 @@
 
   /* ---------- 首屏 ---------- */
   .hero{padding:64px 0 60px;border-bottom:1px solid var(--line)}
+  .hero-main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:44px;align-items:center}
+  .hero-copy{min-width:0}
+  .hero-photo{margin:0;min-width:0}
+  .hero-photo img{
+    display:block;width:100%;height:auto;aspect-ratio:5/4;object-fit:cover;object-position:center;
+    border-radius:10px;filter:saturate(.82);
+  }
+  .hero-photo figcaption{font-size:11.5px;color:var(--muted);margin:10px 0 0;letter-spacing:.02em}
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;margin:0;
-    font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;
-    color:var(--accent);font-weight:700;
+    font-size:11.5px;letter-spacing:.08em;
+    color:var(--accent);font-weight:600;
   }
   .eyebrow::before{content:"";width:22px;height:1px;background:currentColor}
   .hero h1{
-    font-size:clamp(54px,7.4vw,88px);line-height:.95;letter-spacing:-.05em;
-    margin:24px 0 18px;font-weight:800;
+    font-size:clamp(58px,7.8vw,94px);line-height:.95;letter-spacing:-.055em;
+    margin:24px 0 18px;font-weight:700;
   }
   .hero h1 .dot{color:var(--accent)}
   .hero-line{
@@ -107,7 +111,7 @@
   .hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 30px}
   .tag{
     display:inline-flex;align-items:center;gap:6px;padding:7px 12px;
-    border-radius:999px;border:1px solid var(--line-strong);
+    border-radius:6px;border:1px solid var(--line-strong);
     background:rgba(255,255,255,.62);font-size:12.5px;color:var(--ink-2);
     text-decoration:none;transition:border-color .2s,color .2s,background .2s;
     max-width:100%;overflow-wrap:anywhere;
@@ -118,7 +122,7 @@
   .hero-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    padding:12px 20px;border-radius:999px;border:1px solid transparent;
+    padding:12px 20px;border-radius:7px;border:1px solid transparent;
     font:inherit;font-size:14px;font-weight:650;text-decoration:none;
     cursor:pointer;transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;
     max-width:100%;
@@ -126,21 +130,21 @@
   .btn:active{transform:translateY(1px)}
   /* display 会覆盖 hidden 属性，需显式兜住 */
   [hidden]{display:none !important}
-  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 12px 26px -12px rgba(43,72,216,.75)}
-  .btn-primary:hover{background:#213bc4}
+  .btn-primary{background:var(--ink);color:#fff}
+  .btn-primary:hover{background:#000}
   .btn-arrow{font-weight:500;transform:translateY(-1px)}
   .btn-ghost{background:rgba(255,255,255,.55);border-color:var(--line-strong);color:var(--ink-2);font-weight:500}
   .btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
   .hero-meta{font-size:12.5px;color:var(--muted);margin:18px 0 0;letter-spacing:.01em}
 
   /* ---------- 通用 section ---------- */
-  .section{padding:58px 0;border-bottom:1px solid var(--line)}
+  .section{padding:78px 0;border-bottom:1px solid var(--line)}
   .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:34px}
   .section-index{
-    font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:.08em;
+    font-size:11.5px;font-weight:600;color:var(--accent);letter-spacing:.08em;
     font-variant-numeric:tabular-nums;
   }
-  .section-head h2{font-size:25px;line-height:1.2;letter-spacing:-.03em;margin:0;font-weight:750}
+  .section-head h2{font-size:30px;line-height:1.2;letter-spacing:-.035em;margin:0;font-weight:600}
   .section-note{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
 
   /* ---------- 时间线 ---------- */
@@ -166,20 +170,25 @@
 
   /* ---------- 项目 ---------- */
   .project{
-    border:1px solid var(--line);background:var(--surface);border-radius:20px;
+    border:1px solid var(--line);background:var(--surface);border-radius:10px;
     padding:24px 26px;margin-bottom:14px;box-shadow:var(--shadow-s);
     transition:border-color .2s,transform .2s;
   }
   .project:hover{border-color:#cfccc2;transform:translateY(-1px)}
   .project:last-child{margin-bottom:0}
   .project-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
-  .project h3{font-size:17.5px;line-height:1.4;letter-spacing:-.02em;margin:0;font-weight:700}
+  .project h3{font-size:19px;line-height:1.4;letter-spacing:-.02em;margin:0;font-weight:600}
+  .project-status{
+    display:inline-block;font-size:10.5px;line-height:1;padding:5px 8px;border-radius:4px;
+    background:var(--accent-soft);color:var(--ink);white-space:nowrap;
+  }
+  .project-status.is-done{background:var(--bg-2);color:var(--muted)}
   .project-period{font-size:11.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
   .project-meta{font-size:12px;color:var(--muted);margin:7px 0 0;line-height:1.6}
   .project-summary{margin:11px 0 0;color:var(--ink-2);font-size:14px;line-height:1.75}
   .project-metrics{display:flex;flex-wrap:wrap;gap:8px 26px;margin:14px 0 0}
   .metric{display:flex;flex-direction:column;gap:1px}
-  .metric b{font-size:19px;line-height:1.2;font-weight:750;letter-spacing:-.03em;color:var(--accent);font-variant-numeric:tabular-nums}
+  .metric b{font-size:21px;line-height:1.2;font-weight:600;letter-spacing:-.035em;color:var(--ink);font-variant-numeric:tabular-nums}
   .metric span{font-size:11px;color:var(--muted)}
   .project-list{margin:12px 0 0;padding-left:17px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
   .project-list li::marker{color:var(--accent)}
@@ -191,13 +200,13 @@
 
   /* ---------- 技能 ---------- */
   .skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .skill-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .skill-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
   .skill-card h3{font-size:12.5px;letter-spacing:.04em;color:var(--muted);margin:0 0 11px;font-weight:650}
   .skill-card .tag-row{margin-top:0}
 
   /* ---------- 教育 ---------- */
   .edu-card{
-    background:var(--surface);border:1px solid var(--line);border-radius:18px;
+    background:var(--surface);border:1px solid var(--line);    border-radius:10px;
     padding:22px 24px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
   }
   .edu-main h3{font-size:17px;line-height:1.4;margin:0 0 4px;letter-spacing:-.02em;font-weight:700}
@@ -213,16 +222,16 @@
     background:#15161b;color:#fff;padding:42px 44px 38px;
   }
   .contact-card::after{
-    content:"";position:absolute;width:460px;height:460px;right:-150px;top:-190px;border-radius:50%;
-    background:radial-gradient(circle,rgba(80,105,255,.55),transparent 65%);pointer-events:none;
+    content:"";position:absolute;width:300px;height:300px;right:-120px;top:-140px;border-radius:50%;
+    border:1px solid rgba(210,220,218,.25);pointer-events:none;
   }
   .contact-card > *{position:relative;z-index:1}
   .contact-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);margin:0 0 14px}
-  .contact-card h2{font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.04em;margin:0 0 14px;font-weight:750}
+  .contact-card h2{font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.04em;margin:0 0 14px;font-weight:600}
   .contact-text{font-size:14.5px;line-height:1.8;color:rgba(255,255,255,.72);max-width:620px;margin:0}
   .contact-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
   .btn-light{background:#fff;color:var(--ink);border-color:#fff}
-  .btn-light:hover{background:#e9ecff}
+  .btn-light:hover{background:var(--accent-soft)}
   .btn-outline-light{background:transparent;color:#fff;border-color:rgba(255,255,255,.32)}
   .btn-outline-light:hover{border-color:#fff;background:rgba(255,255,255,.08)}
   .contact-foot{font-size:12px;color:rgba(255,255,255,.5);margin:20px 0 0;letter-spacing:.02em}
@@ -245,7 +254,7 @@
   }
   .chat-avatar{
     width:38px;height:38px;border-radius:12px;flex:none;
-    background:linear-gradient(135deg,#2b48d8,#5a74f5);color:#fff;
+    background:var(--ink);color:#fff;
     display:grid;place-items:center;font-size:15px;font-weight:700;
   }
   .chat-title{display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -310,7 +319,7 @@
     background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;
     transition:border-color .2s,box-shadow .2s;
   }
-  .composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,72,216,.1)}
+  .composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,123,102,.16)}
   .composer textarea{
     flex:1;min-width:0;border:none;outline:none;resize:none;background:transparent;
     font:inherit;font-size:13px;line-height:1.6;color:var(--ink);
@@ -324,7 +333,7 @@
   }
   .chat-send svg{width:15px;height:15px;display:block}
   .chat-send:disabled{opacity:.35;cursor:not-allowed}
-  .chat-send:not(:disabled):hover{background:#213bc4}
+  .chat-send:not(:disabled):hover{background:#5f5e4d}
   .chat-foot{
     flex:none;text-align:center;font-size:10.5px;color:var(--muted);
     padding:7px 14px calc(10px + env(safe-area-inset-bottom));line-height:1.5;
@@ -364,7 +373,7 @@
     padding:10px 12px;font:inherit;font-size:13px;color:var(--ink);background:#fbfaf7;
     outline:none;transition:border-color .2s,box-shadow .2s;
   }
-  .settings-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,72,216,.1);background:#fff}
+  .settings-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,123,102,.16);background:#fff}
   .settings-note{
     font-size:11.5px;line-height:1.65;color:#146c4a;background:#e8f6ef;
     border:1px solid #cfe9dc;border-radius:10px;padding:9px 12px;margin:0 0 13px;
@@ -401,6 +410,8 @@
     .topbar-link{display:none}
     .page{display:block;padding:0 20px 104px}
     .hero{padding:44px 0 42px}
+    .hero-main{grid-template-columns:1fr;gap:32px}
+    .hero-photo{max-width:460px}
     .hero h1{font-size:clamp(48px,13vw,64px);margin-top:20px}
     .hero-line{font-size:21px}
     .hero-intro{font-size:14.5px;line-height:1.8}
@@ -484,16 +495,24 @@
 <main class="page">
   <div class="content">
     <section class="hero">
-      <p class="eyebrow"><span id="heroEyebrow">JAVA 工程师 · 16 年经验 · 广州</span></p>
-      <h1><span id="heroName">陈洪机</span><span class="dot">.</span></h1>
-      <p class="hero-line" id="heroHeadline">把系统从需求，做到上线。</p>
-      <p class="hero-intro" id="heroIntro"></p>
-      <div class="hero-tags" id="heroTags"></div>
-      <div class="hero-actions">
-        <button class="btn btn-primary" type="button" data-open-chat>和 AI 版的我聊聊<span class="btn-arrow">→</span></button>
-        <a class="btn btn-ghost" id="heroMail" href="mailto:898375292@qq.com">898375292@qq.com</a>
+      <div class="hero-main">
+        <div class="hero-copy">
+          <p class="eyebrow"><span id="heroEyebrow">JAVA 工程师 · 16 年经验 · 广州</span></p>
+          <h1><span id="heroName">陈洪机</span><span class="dot">.</span></h1>
+          <p class="hero-line" id="heroHeadline">把系统从需求，做到上线。</p>
+          <p class="hero-intro" id="heroIntro"></p>
+          <div class="hero-tags" id="heroTags"></div>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#projects">看项目经历<span class="btn-arrow">↓</span></a>
+            <a class="btn btn-ghost" id="heroMail" href="mailto:898375292@qq.com">898375292@qq.com</a>
+          </div>
+          <p class="hero-meta" id="heroMeta"></p>
+        </div>
+        <figure class="hero-photo">
+          <img src="assets/img/hands-rope.jpg" alt="训练中紧握战绳的手" width="580" height="465">
+          <figcaption>写代码和练力量，都是长期主义。</figcaption>
+        </figure>
       </div>
-      <p class="hero-meta" id="heroMeta"></p>
     </section>
 
     <section class="section" id="experience">
@@ -1061,8 +1080,11 @@ function renderProfile() {
     const stack = project.stack && project.stack.length
       ? '<div class="tag-row">' + project.stack.map(function (s) { return '<span class="pill">' + esc(s) + "</span>"; }).join("") + "</div>"
       : "";
+    const ongoing = /至今|现在|present/i.test(String(project.period || ""));
+    const status = '<span class="project-status' + (ongoing ? "" : " is-done") + '">' +
+      (ongoing ? "持续维护" : "已交付") + "</span>";
     return '<article class="project">' +
-      '<div class="project-top"><h3>' + esc(project.name) + '</h3><span class="project-period">' + esc(project.period) + "</span></div>" +
+      '<div class="project-top"><h3>' + esc(project.name) + '</h3>' + status + '<span class="project-period">' + esc(project.period) + "</span></div>" +
       '<p class="project-meta">' + esc(project.org) + " · " + esc(project.role) + "</p>" +
       '<p class="project-summary">' + esc(project.summary) + "</p>" +
       metrics + list + stack +

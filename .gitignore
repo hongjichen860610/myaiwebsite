@@ -17,6 +17,12 @@ _artifacts/
 *.gif
 *.webp
 
+# 例外：站点运行必需的图片（首屏局部照片）可以入库
+!assets/img/*.jpg
+
+# 会话记忆与本地工具数据
+.workbuddy/
+
 # 依赖与日志
 node_modules/
 *.log

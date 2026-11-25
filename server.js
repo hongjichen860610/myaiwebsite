@@ -311,6 +311,33 @@ function serveIndex(req, res) {
   });
 }
 
+const ASSET_TYPES = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp"
+};
+
+function serveAsset(req, res, pathname) {
+  const rel = decodeURIComponent(pathname.slice("/assets/".length));
+  const filePath = path.resolve(__dirname, "assets", rel);
+  const root = path.resolve(__dirname, "assets") + path.sep;
+  if (!filePath.startsWith(root)) {
+    sendJson(res, 403, { ok: false, error: "禁止访问" });
+    return;
+  }
+  const ext = path.extname(filePath).toLowerCase();
+  if (!ASSET_TYPES[ext]) {
+    sendJson(res, 404, { ok: false, error: "不支持的资源类型" });
+    return;
+  }
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    sendJson(res, 405, { ok: false, error: "仅支持 GET / HEAD" }, { Allow: "GET, HEAD" });
+    return;
+  }
+  serveFile(res, filePath, ASSET_TYPES[ext]);
+}
+
 function serveAdmin(req, res) {
   if (!fs.existsSync(ADMIN_PATH)) {
     sendJson(res, 404, { ok: false, error: "admin.html 不存在" });
@@ -1305,6 +1332,10 @@ const server = http.createServer(function (req, res) {
   if (pathname === "/data.json") {
     if (req.method === "GET" || req.method === "HEAD") { serveDataStatic(req, res); return; }
     sendJson(res, 405, { ok: false, error: "仅支持 GET / HEAD" });
+    return;
+  }
+  if (pathname.startsWith("/assets/")) {
+    serveAsset(req, res, pathname);
     return;
   }
 
