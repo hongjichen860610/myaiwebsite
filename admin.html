@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>简历后台 · 资料管理</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#fff; --ink:#1a1b22; --muted:#7a7f88;
+    --line:#e7e9ee; --accent:#2b48d8; --accent-soft:#e9ecff; --danger:#b42318;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  /* 关键：CSS 的 display 会覆盖 hidden 属性，必须显式兜住 */
+  [hidden]{display:none !important}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  .layout{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+  .sidebar{background:#1a1b22;color:#fff;padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .sidebar h1{font-size:13px;font-weight:600;margin:0 24px 20px;letter-spacing:.05em;opacity:.5;
+    text-transform:uppercase}
+  .nav{display:flex;flex-direction:column}
+  .nav button{background:none;border:none;color:rgba(255,255,255,.7);text-align:left;
+    padding:12px 24px;font:inherit;cursor:pointer;border-left:3px solid transparent;
+    transition:all .15s}
+  .nav button:hover{background:rgba(255,255,255,.05);color:#fff}
+  .nav button.active{background:rgba(255,255,255,.06);color:#fff;border-left-color:var(--accent)}
+  .sidebar-footer{position:absolute;bottom:20px;left:0;right:0;text-align:center}
+  .sidebar-footer a{color:rgba(255,255,255,.4);text-decoration:none;font-size:12px}
+  .sidebar-footer a:hover{color:#fff}
+  .sidebar-footer .link-btn{display:block;margin:6px auto 0;background:none;border:none;
+    color:rgba(255,255,255,.4);font:inherit;font-size:12px;cursor:pointer;padding:0}
+  .sidebar-footer .link-btn:hover{color:#fff}
+
+  .main{padding:36px 48px 160px;max-width:920px;margin:0 auto;width:100%}
+  .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+  .page-head h2{font-size:22px;font-weight:700;margin:0}
+  .page-head .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .save-bar{position:fixed;bottom:0;left:200px;right:0;background:#fff;
+    border-top:1px solid var(--line);padding:14px 48px;display:flex;gap:12px;
+    align-items:center;justify-content:flex-end;z-index:30}
+  .save-bar .status{margin-right:auto;font-size:12.5px;color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:13px;
+    font-weight:500;cursor:pointer;transition:all .15s}
+  .btn:hover{border-color:#cdd0d8}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-primary:hover{background:#213bc4}
+  .btn-danger{color:var(--danger);border-color:#f2c6c2;background:#fff}
+  .btn-danger:hover{background:#fdf3f2}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  .btn-ghost:hover{background:rgba(0,0,0,.04);border-color:transparent}
+  .btn-sm{padding:5px 11px;font-size:12px}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 26px;margin-bottom:14px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .card-head h3{font-size:15px;font-weight:600;margin:0}
+  .card-head .idx{font-size:12px;color:var(--muted);font-weight:400;margin-left:8px}
+
+  label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px}
+  input[type=text],input[type=url],input[type=tel],input[type=email],input[type=number],textarea,select{
+    width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;
+    background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+  textarea{resize:vertical;min-height:72px}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(43,72,216,.12);outline:none}
+  .field{margin-bottom:14px}
+  .field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .field-row-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .field-row-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+
+  .chip-input .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);
+    padding:3px 9px;border-radius:999px;font-size:12px;font-weight:500}
+  .chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;line-height:1}
+  .chip-input input{margin-top:4px}
+
+  .del-row{text-align:right;padding:4px 0}
+  .add-bar{display:flex;gap:10px;margin:16px 0 8px}
+
+  /* 登录 */
+  .login-wrap{min-height:100vh;display:grid;place-items:center;background:var(--bg)}
+  .login-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:34px 38px;
+    width:380px;box-shadow:0 8px 32px -16px rgba(0,0,0,.2)}
+  .login-card h2{font-size:18px;margin:0 0 6px}
+  .login-card p{margin:0 0 20px;color:var(--muted);font-size:13px}
+  .login-card .btn{width:100%;margin-top:4px}
+  .login-card .login-err{margin:0 0 12px;padding:9px 12px;border-radius:8px;background:#fdf3f2;
+    color:var(--danger);font-size:12.5px;line-height:1.45}
+
+  /* Toast */
+  .toast{position:fixed;top:20px;right:20px;background:#1a1b22;color:#fff;padding:12px 18px;
+    border-radius:8px;box-shadow:0 12px 32px -8px rgba(0,0,0,.3);font-size:13px;z-index:99;
+    transform:translateY(-10px);opacity:0;transition:all .2s}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.ok{background:#1a9c6b}
+  .toast.err{background:#b42318}
+
+  .empty-hint{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+  @media(max-width:760px){
+    .layout{grid-template-columns:1fr}
+    .sidebar{position:relative;height:auto;padding:14px 0}
+    .sidebar-footer{position:relative;bottom:auto;margin-top:20px}
+    .nav{flex-direction:row;overflow-x:auto;padding:0 14px}
+    .nav button{padding:10px 16px;border-left:none;border-bottom:3px solid transparent;white-space:nowrap}
+    .nav button.active{border-left-color:transparent;border-bottom-color:var(--accent)}
+    .main{padding:20px 16px 140px}
+    .save-bar{left:0;padding:12px 16px}
+    .field-row,.field-row-3,.field-row-4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="login-wrap" id="loginWrap" hidden>
+  <!-- 优先走 JS fetch 登录；JS 被禁用时退回原生 form POST -->
+  <form class="login-card" id="loginForm" action="/api/admin/login" method="post">
+    <h2>后台登录</h2>
+    <p>输入密码进入资料管理</p>
+    <div class="field">
+      <input id="loginPw" name="password" type="password" placeholder="密码" autocomplete="current-password" autofocus>
+    </div>
+    <div class="login-err" id="loginErr" hidden></div>
+    <button class="btn btn-primary" type="submit" id="loginBtn">登录</button>
+  </form>
+</div>
+
+<div class="layout" id="appWrap" hidden>
+  <aside class="sidebar">
+    <h1>资料管理</h1>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank">→ 打开主页</a>
+      <button class="link-btn" type="button" id="logoutBtn">退出登录</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <h2 id="pageTitle"></h2>
+        <div class="hint" id="pageHint"></div>
+      </div>
+    </div>
+    <div id="pageBody"></div>
+  </main>
+  <div class="save-bar">
+    <span class="status" id="saveStatus"></span>
+    <button class="btn btn-ghost" onclick="resetDraft()" id="resetBtn">放弃修改</button>
+    <button class="btn btn-primary" onclick="saveData()" id="saveBtn">保存并发布</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   admin.html — 后台管理（单文件，零依赖）
+   路由：登录 → GET /api/data 加载 → 各 tab 表单 → POST /api/data
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+
+const TABS = [
+  { key: "identity", label: "身份与联系方式", hint: "姓名、求职方向、年限、城市、电话邮箱等" },
+  { key: "experience", label: "工作经历", hint: "按时间倒序排列，每条含时间、公司、职位、职责" },
+  { key: "projects", label: "项目经历", hint: "展示页会按这里的顺序渲染" },
+  { key: "skills", label: "技能分组", hint: "后端、前端、框架等分组" },
+  { key: "education", label: "教育背景", hint: "一般一条，多条也行" },
+  { key: "knowledge", label: "知识条目（AI 问答）", hint: "每条含 keywords 触发词 + answer 事实原文" },
+  { key: "analyze", label: "项目分析", hint: "上传 zip 或 GitHub 公开仓库，自动分析代码风格/技术栈，生成项目与知识条目" }
+];
+
+let currentData = null;  // 后端返回的最新数据（不含 _schema 之外的元）
+let draft = null;        // 本地编辑副本
+let dirty = false;
+let currentTab = "identity";
+
+function toast(text, kind) {
+  const t = $("toast");
+  t.textContent = text;
+  t.className = "toast show" + (kind ? " " + kind : "");
+  clearTimeout(toast._tid);
+  toast._tid = setTimeout(() => t.className = "toast", 2200);
+}
+
+async function apiGet(path) {
+  const r = await fetch(path, { credentials: "same-origin" });
+  const text = await r.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (e) {}
+  if (!r.ok) throw new Error((json && json.error) || ("HTTP " + r.status));
+  return json;
+}
+
+async function apiPost(path, body) {
+  const r = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(body)
+  });
+  const text = await r.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (e) {}
+  if (!r.ok) throw new Error((json && json.error) || ("HTTP " + r.status));
+  return json;
+}
+
+function showLogin(msg) {
+  $("appWrap").hidden = true;
+  $("loginWrap").hidden = false;
+  if (msg) {
+    $("loginErr").textContent = msg;
+    $("loginErr").hidden = false;
+  }
+  $("loginPw").focus();
+}
+
+async function init() {
+  try {
+    // 1. 先探测 session 状态
+    const sess = await apiGet("/api/admin/session");
+    if (!sess.authed && sess.passwordConfigured) {
+      showLogin("");
+      return;
+    }
+    // 没设密码或已登录 → 直接加载数据
+    const res = await apiGet("/api/data");
+    currentData = res.data;
+    draft = JSON.parse(JSON.stringify(currentData));
+    $("loginWrap").hidden = true;
+    $("appWrap").hidden = false;
+    buildNav();
+    showTab("identity");
+  } catch (e) {
+    // 通常是没通过 server.js 打开（file:// 或纯静态托管），接口不存在
+    showLogin("无法连接后台接口。请用 node server.js 启动服务，并访问 http://localhost:8787/admin（不要双击打开本地文件）。");
+  }
+}
+
+async function logout() {
+  if (!confirm("退出登录？")) return;
+  try { await fetch("/api/admin/logout", { credentials: "same-origin" }); } catch (e) {}
+  location.href = "/admin";
+}
+
+async function submitLogin(e) {
+  e.preventDefault();
+  const btn = $("loginBtn");
+  const err = $("loginErr");
+  err.hidden = true;
+  btn.disabled = true;
+  btn.textContent = "登录中…";
+  try {
+    await apiPost("/api/admin/login", { password: $("loginPw").value });
+    // 登录成功后重新加载，让 init() 用新 cookie 校验并进入后台
+    location.href = "/admin";
+  } catch (e2) {
+    err.textContent = e2.message === "密码错误" ? "密码错误，请重新输入" : ("登录失败：" + e2.message);
+    err.hidden = false;
+    btn.disabled = false;
+    btn.textContent = "登录";
+    $("loginPw").select();
+  }
+}
+
+function buildNav() {
+  const nav = $("nav");
+  nav.innerHTML = "";
+  TABS.forEach(function (t) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = t.label;
+    b.dataset.tab = t.key;
+    b.addEventListener("click", () => showTab(t.key));
+    nav.appendChild(b);
+  });
+}
+
+function showTab(key) {
+  currentTab = key;
+  document.querySelectorAll("#nav button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.tab === key);
+  });
+  const def = TABS.find((t) => t.key === key);
+  $("pageTitle").textContent = def.label;
+  $("pageHint").textContent = def.hint;
+  renderTab(key);
+}
+
+function renderTab(key) {
+  const body = $("pageBody");
+  body.innerHTML = "";
+  switch (key) {
+    case "identity": renderIdentity(body); break;
+    case "experience": renderExperience(body); break;
+    case "projects": renderProjects(body); break;
+    case "skills": renderSkills(body); break;
+    case "education": renderEducation(body); break;
+    case "knowledge": renderKnowledge(body); break;
+    case "analyze": renderAnalyze(body); break;
+  }
+  updateDirtyUI();
+}
+
+function markDirty() { dirty = true; updateDirtyUI(); }
+function updateDirtyUI() {
+  $("saveBtn").disabled = !dirty;
+  $("resetBtn").style.opacity = dirty ? 1 : .3;
+  $("saveStatus").textContent = dirty ? "有未保存改动" : "已保存到服务器";
+}
+
+function resetDraft() {
+  if (!confirm("放弃所有未保存的改动？")) return;
+  draft = JSON.parse(JSON.stringify(currentData));
+  dirty = false;
+  renderTab(currentTab);
+  toast("已从服务器重新加载", "ok");
+}
+
+function saveData() {
+  // 校验 knowledge
+  for (let i = 0; i < draft.knowledge.length; i += 1) {
+    const k = draft.knowledge[i];
+    if (!Array.isArray(k.keywords) || k.keywords.length === 0) {
+      toast("knowledge[" + i + "] 缺少 keywords", "err");
+      return;
+    }
+    if (!k.answer || !k.answer.trim()) {
+      toast("knowledge[" + i + "] 缺少 answer", "err");
+      return;
+    }
+  }
+  $("saveBtn").disabled = true;
+  apiPost("/api/data", draft).then((res) => {
+    currentData = JSON.parse(JSON.stringify(draft));
+    currentData.updatedAt = res.updatedAt;
+    dirty = false;
+    updateDirtyUI();
+    toast("已保存 · " + new Date(res.updatedAt).toLocaleTimeString(), "ok");
+  }).catch((e) => {
+    toast("保存失败：" + e.message, "err");
+    $("saveBtn").disabled = false;
+  });
+}
+
+// ---------- 身份 ----------
+function renderIdentity(body) {
+  const id = draft.profile.identity || (draft.profile.identity = {});
+  const fields = [
+    ["name", "姓名"], ["role", "求职方向"], ["years", "工作年限"], ["age", "年龄"],
+    ["gender", "性别"], ["city", "现居城市"], ["expectedCity", "期望城市"],
+    ["expectedSalary", "期望薪资"], ["educationLevel", "学历"], ["phone", "电话"],
+    ["email", "邮箱"], ["status", "状态（如『广州 · 求职中』）"], ["headline", "一句话 headline"]
+  ];
+  const grid = document.createElement("div");
+  grid.className = "card";
+  grid.innerHTML = `
+    <div class="field-row-3">
+      ${fields.map(([k, l]) => `
+        <div class="field">
+          <label>${l}</label>
+          <input type="text" value="${escapeAttr(id[k] || "")}" data-k="${k}">
+        </div>`).join("")}
+    </div>
+    <div class="field">
+      <label>自我介绍 intro</label>
+      <textarea data-k="intro" rows="3">${escapeHtml(id.intro || "")}</textarea>
+    </div>
+    <div class="field">
+      <label>meta（如"40 岁 · 男 · 本科统招"）</label>
+      <input type="text" value="${escapeAttr(id.meta || "")}" data-k="meta">
+    </div>
+    <div class="field">
+      <label>contactNote（联系方式下方的引导文案）</label>
+      <textarea data-k="contactNote" rows="2">${escapeHtml(id.contactNote || "")}</textarea>
+    </div>
+  `;
+  grid.querySelectorAll("[data-k]").forEach(function (el) {
+    const k = el.dataset.k;
+    el.addEventListener("input", () => { id[k] = el.value; markDirty(); });
+  });
+  body.appendChild(grid);
+
+  // tags
+  const tagsCard = document.createElement("div");
+  tagsCard.className = "card";
+  tagsCard.innerHTML = `<h3 style="margin:0 0 10px;font-size:15px">tags（首屏标签）</h3>`;
+  appendChipInput(tagsCard, id.tags || (id.tags = []), function (arr) { id.tags = arr; });
+  body.appendChild(tagsCard);
+}
+
+// ---------- 通用条目渲染 ----------
+function cardRow(index, titleHTML, bodyContent, onDel) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-head">
+      <h3>${titleHTML}<span class="idx">#${index + 1}</span></h3>
+      <button class="btn btn-danger btn-sm" type="button">删除</button>
+    </div>
+  `;
+  const wrap = document.createElement("div");
+  wrap.appendChild(bodyContent);
+  card.appendChild(wrap);
+  card.querySelector(".btn-danger").addEventListener("click", () => {
+    if (!confirm("删除这条？")) return;
+    onDel();
+  });
+  return card;
+}
+
+function textField(label, value, onChange) {
+  const div = document.createElement("div");
+  div.className = "field";
+  div.innerHTML = `<label>${label}</label><input type="text" value="${escapeAttr(value || "")}">`;
+  div.querySelector("input").addEventListener("input", (e) => onChange(e.target.value));
+  return div;
+}
+function textareaField(label, value, onChange, rows) {
+  const div = document.createElement("div");
+  div.className = "field";
+  div.innerHTML = `<label>${label}</label><textarea rows="${rows || 3}">${escapeHtml(value || "")}</textarea>`;
+  div.querySelector("textarea").addEventListener("input", (e) => onChange(e.target.value));
+  return div;
+}
+
+function appendChipInput(parent, arr, onArrChange) {
+  const div = document.createElement("div");
+  div.className = "chip-input";
+  const chipsBox = document.createElement("div");
+  chipsBox.className = "chips";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "回车 / 逗号 添加一个，点击 × 删除";
+  const refresh = () => {
+    chipsBox.innerHTML = "";
+    arr.forEach(function (val, i) {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = val;
+      const x = document.createElement("button");
+      x.textContent = "×";
+      x.type = "button";
+      x.addEventListener("click", () => {
+        arr.splice(i, 1); onArrChange(arr.slice()); refresh(); markDirty();
+      });
+      chip.appendChild(x);
+      chipsBox.appendChild(chip);
+    });
+  };
+  refresh();
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const v = input.value.trim();
+      if (v && !arr.includes(v)) { arr.push(v); onArrChange(arr.slice()); refresh(); markDirty(); }
+      input.value = "";
+    } else if (e.key === "Backspace" && !input.value && arr.length) {
+      arr.pop(); onArrChange(arr.slice()); refresh(); markDirty();
+    }
+  });
+  div.appendChild(chipsBox);
+  div.appendChild(input);
+  parent.appendChild(div);
+}
+
+// ---------- 工作经历 ----------
+function renderExperience(body) {
+  const list = draft.profile.experience || (draft.profile.experience = []);
+  list.forEach(function (exp, i) {
+    const title = exp.role + " @ " + exp.company;
+    body.appendChild(cardRow(i, title, (function () {
+      const wrap = document.createElement("div");
+      const r1 = document.createElement("div");
+      r1.className = "field-row-3";
+      r1.appendChild(textField("时间段", exp.period, (v) => { exp.period = v; markDirty(); }));
+      r1.appendChild(textField("公司", exp.company, (v) => { exp.company = v; markDirty(); }));
+      r1.appendChild(textField("职位", exp.role, (v) => { exp.role = v; markDirty(); }));
+      wrap.appendChild(r1);
+      wrap.appendChild(textareaField("职责描述（要点）", exp.desc, (v) => { exp.desc = v; markDirty(); }, 3));
+      if (Array.isArray(exp.highlights)) {
+        const hL = document.createElement("div"); hL.className = "field";
+        hL.innerHTML = `<label>成果/亮点（每行一条，可选）</label>`;
+        const ta = document.createElement("textarea"); ta.rows = 3;
+        ta.value = exp.highlights.join("\n");
+        ta.addEventListener("input", () => { exp.highlights = ta.value.split("\n").filter(Boolean); markDirty(); });
+        hL.appendChild(ta); wrap.appendChild(hL);
+      }
+      wrap.appendChild(textareaField("技术栈 stack（每行一条）",
+        Array.isArray(exp.stack) ? exp.stack.join("\n") : "",
+        (v) => { exp.stack = v.split("\n").filter(Boolean); markDirty(); }, 1));
+      return wrap;
+    })(), () => { list.splice(i, 1); markDirty(); renderTab("experience"); }));
+  });
+  const add = document.createElement("div");
+  add.className = "add-bar";
+  add.innerHTML = `<button class="btn btn-primary btn-sm" type="button">+ 添加一条经历</button>`;
+  add.querySelector("button").addEventListener("click", () => {
+    list.push({ period: "", company: "", role: "", desc: "", highlights: [], stack: [] });
+    markDirty(); renderTab("experience");
+  });
+  body.appendChild(add);
+}
+
+// ---------- 项目 ----------
+function renderProjects(body) {
+  const list = draft.profile.projects || (draft.profile.projects = []);
+  list.forEach(function (p, i) {
+    body.appendChild(cardRow(i, p.name || "(未命名项目)", (function () {
+      const wrap = document.createElement("div");
+      const r1 = document.createElement("div"); r1.className = "field-row-3";
+      r1.appendChild(textField("项目名称 name", p.name, (v) => { p.name = v; markDirty(); }));
+      r1.appendChild(textField("时间段 period", p.period, (v) => { p.period = v; markDirty(); }));
+      r1.appendChild(textField("所属组织 org", p.org, (v) => { p.org = v; markDirty(); }));
+      wrap.appendChild(r1);
+      wrap.appendChild(textField("角色 role", p.role, (v) => { p.role = v; markDirty(); }));
+      wrap.appendChild(textareaField("项目背景 summary", p.summary, (v) => { p.summary = v; markDirty(); }, 2));
+      // metrics：{ value, label }
+      const mRow = document.createElement("div"); mRow.className = "field";
+      const mHead = document.createElement("label"); mHead.textContent = "可量化成果 metrics（标签=数值，每行一条，如 推广单位=9 家）";
+      mRow.appendChild(mHead);
+      const mTa = document.createElement("textarea"); mTa.rows = 2;
+      if (Array.isArray(p.metrics)) mTa.value = p.metrics.map((m) => ((m.label || "") + "=" + (m.value || ""))).join("\n");
+      mTa.addEventListener("input", () => {
+        p.metrics = mTa.value.split("\n").map((line) => {
+          const idx = line.indexOf("=");
+          if (idx === -1) return null;
+          return { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+        }).filter(Boolean);
+        markDirty();
+      });
+      mRow.appendChild(mTa); wrap.appendChild(mRow);
+      // highlights
+      wrap.appendChild(textareaField("技术亮点 highlights（每行一条）",
+        Array.isArray(p.highlights) ? p.highlights.join("\n") : "",
+        (v) => { p.highlights = v.split("\n").filter(Boolean); markDirty(); }, 2));
+      // stack tags
+      const tagsCard = document.createElement("div");
+      const tagsLabel = document.createElement("div"); tagsLabel.className = "field";
+      tagsLabel.innerHTML = `<label>技术栈 stack（回车 / 逗号添加）</label>`;
+      tagsCard.appendChild(tagsLabel);
+      appendChipInput(tagsCard, p.stack || (p.stack = []), (arr) => { p.stack = arr.slice(); });
+      wrap.appendChild(tagsCard);
+      return wrap;
+    })(), () => { list.splice(i, 1); markDirty(); renderTab("projects"); }));
+  });
+  const add = document.createElement("div"); add.className = "add-bar";
+  add.innerHTML = `<button class="btn btn-primary btn-sm" type="button">+ 添加一个项目</button>`;
+  add.querySelector("button").addEventListener("click", () => {
+    list.push({ name: "", org: "", period: "", role: "", summary: "", metrics: [], highlights: [], stack: [] });
+    markDirty(); renderTab("projects");
+  });
+  body.appendChild(add);
+}
+
+// ---------- 技能 ----------
+function renderSkills(body) {
+  const list = draft.profile.skills || (draft.profile.skills = []);
+  list.forEach(function (g, i) {
+    body.appendChild(cardRow(i, g.group || "技能组", (function () {
+      const wrap = document.createElement("div");
+      wrap.appendChild(textField("分组名称 group", g.group, (v) => { g.group = v; markDirty(); }));
+      const itemsLabel = document.createElement("div"); itemsLabel.className = "field";
+      itemsLabel.innerHTML = `<label>技能 items（回车 / 逗号添加，保持一个组内）</label>`;
+      wrap.appendChild(itemsLabel);
+      appendChipInput(wrap, g.items || (g.items = []), (arr) => { g.items = arr.slice(); });
+      return wrap;
+    })(), () => { list.splice(i, 1); markDirty(); renderTab("skills"); }));
+  });
+  const add = document.createElement("div"); add.className = "add-bar";
+  add.innerHTML = `<button class="btn btn-primary btn-sm" type="button">+ 添加一组技能</button>`;
+  add.querySelector("button").addEventListener("click", () => {
+    list.push({ group: "", items: [] });
+    markDirty(); renderTab("skills");
+  });
+  body.appendChild(add);
+}
+
+// ---------- 教育 ----------
+function renderEducation(body) {
+  const list = draft.profile.education || (draft.profile.education = []);
+  list.forEach(function (ed, i) {
+    body.appendChild(cardRow(i, ed.school + " · " + ed.degree, (function () {
+      const wrap = document.createElement("div");
+      const r = document.createElement("div"); r.className = "field-row-3";
+      r.appendChild(textField("学校", ed.school, (v) => { ed.school = v; markDirty(); }));
+      r.appendChild(textField("学位/层次", ed.degree, (v) => { ed.degree = v; markDirty(); }));
+      r.appendChild(textField("专业", ed.major, (v) => { ed.major = v; markDirty(); }));
+      wrap.appendChild(r);
+      const r2 = document.createElement("div"); r2.className = "field-row";
+      r2.appendChild(textField("时间段 period", ed.period, (v) => { ed.period = v; markDirty(); }));
+      r2.appendChild(textField("备注 notes（每行一条）",
+        Array.isArray(ed.notes) ? ed.notes.join("\n") : "",
+        (v) => { ed.notes = v.split("\n").filter(Boolean); markDirty(); }));
+      wrap.appendChild(r2);
+      return wrap;
+    })(), () => { list.splice(i, 1); markDirty(); renderTab("education"); }));
+  });
+  const add = document.createElement("div"); add.className = "add-bar";
+  add.innerHTML = `<button class="btn btn-primary btn-sm" type="button">+ 添加一条教育经历</button>`;
+  add.querySelector("button").addEventListener("click", () => {
+    list.push({ school: "", degree: "", major: "", period: "", notes: [] });
+    markDirty(); renderTab("education");
+  });
+  body.appendChild(add);
+}
+
+// ---------- 知识条目 ----------
+function renderKnowledge(body) {
+  const list = draft.knowledge || (draft.knowledge = []);
+  list.forEach(function (k, i) {
+    body.appendChild(cardRow(i, (k.keywords || []).slice(0, 2).join(" / ") + " ...", (function () {
+      const wrap = document.createElement("div");
+      const kl = document.createElement("div"); kl.className = "field";
+      kl.innerHTML = `<label>触发词 keywords（逗号或回车分隔，越长权重越高）</label>`;
+      wrap.appendChild(kl);
+      appendChipInput(wrap, k.keywords || (k.keywords = []), (arr) => { k.keywords = arr.slice(); });
+      wrap.appendChild(textareaField("answer —— 模型只允许改写这句话，不能添加资料外内容",
+        k.answer, (v) => { k.answer = v; markDirty(); }, 3));
+      return wrap;
+    })(), () => { list.splice(i, 1); markDirty(); renderTab("knowledge"); }));
+  });
+  const add = document.createElement("div"); add.className = "add-bar";
+  add.innerHTML = `<button class="btn btn-primary btn-sm" type="button">+ 添加一条问答</button>`;
+  add.querySelector("button").addEventListener("click", () => {
+    list.push({ keywords: [], answer: "" });
+    markDirty(); renderTab("knowledge");
+  });
+  body.appendChild(add);
+}
+
+// ---------- 项目分析 ----------
+let lastAnalysis = null;  // 最近一次分析结果
+let aiKeyConfigured = false;
+
+async function probeAiKey() {
+  try {
+    const r = await apiGet("/api/chat");
+    // 本地 Ollama 可用时即使没有外部 Key 也能润色
+    aiKeyConfigured = r && r.aiAvailable !== undefined ? !!r.aiAvailable : !!(r && r.keyConfigured);
+  } catch (e) { aiKeyConfigured = false; }
+}
+
+function renderAnalyze(body) {
+  // 顶部：两种入口
+  const inputCard = document.createElement("div");
+  inputCard.className = "card";
+  inputCard.innerHTML = `
+    <h3 style="margin:0 0 14px;font-size:15px">选择导入方式</h3>
+    <div class="field-row">
+      <div class="field">
+        <label>方式一：上传项目 zip（最大 60MB）</label>
+        <input type="file" id="anaZipInput" accept=".zip,application/zip" style="padding:6px">
+      </div>
+      <div class="field">
+        <label>方式二：GitHub 公开仓库地址</label>
+        <input type="text" id="anaGhInput" placeholder="https://github.com/owner/repo">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
+      <button class="btn btn-primary" id="anaRunBtn" type="button">开始分析</button>
+      <span id="anaStatus" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+    <p style="margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.6">
+      仅支持公开仓库；私有仓库需要 Token，按项目安全规范不存储密钥。上传前请确认代码中不含 API Key / 密码 / 公司机密。
+      分析过程全部在本机 server.js 内完成，不向第三方发送代码。
+    </p>
+  `;
+  body.appendChild(inputCard);
+
+  // 结果容器
+  const resultCard = document.createElement("div");
+  resultCard.className = "card";
+  resultCard.id = "anaResult";
+  resultCard.hidden = true;
+  body.appendChild(resultCard);
+
+  // 生成资料条目容器
+  const genCard = document.createElement("div");
+  genCard.className = "card";
+  genCard.id = "anaGen";
+  genCard.hidden = true;
+  body.appendChild(genCard);
+
+  const runBtn = inputCard.querySelector("#anaRunBtn");
+  const statusEl = inputCard.querySelector("#anaStatus");
+
+  runBtn.addEventListener("click", () => runAnalyze(inputCard, resultCard, genCard, statusEl));
+
+  // 如果已有分析结果，恢复渲染
+  if (lastAnalysis) {
+    renderAnalysisResult(resultCard, genCard, lastAnalysis);
+  }
+}
+
+async function runAnalyze(inputCard, resultCard, genCard, statusEl) {
+  const zipInput = inputCard.querySelector("#anaZipInput");
+  const ghInput = inputCard.querySelector("#anaGhInput");
+  const zipFile = zipInput.files && zipInput.files[0];
+  const ghUrl = ghInput.value.trim();
+
+  if (!zipFile && !ghUrl) { toast("请选择 zip 文件或填写 GitHub 地址", "err"); return; }
+  if (zipFile && ghUrl) { toast("两种方式二选一", "err"); return; }
+
+  statusEl.textContent = zipFile ? "正在解压并分析…" : "正在下载并分析仓库…";
+  try {
+    let res;
+    if (zipFile) {
+      const buf = await zipFile.arrayBuffer();
+      const r = await fetch("/api/admin/analyze/zip", {
+        method: "POST",
+        headers: { "Content-Type": "application/zip" },
+        credentials: "same-origin",
+        body: buf
+      });
+      res = await r.json();
+      if (!r.ok) throw new Error(res.error || ("HTTP " + r.status));
+    } else {
+      res = await apiPost("/api/admin/analyze/github", { url: ghUrl });
+    }
+    lastAnalysis = res.analysis;
+    renderAnalysisResult(resultCard, genCard, res.analysis);
+    statusEl.textContent = "分析完成 ✓";
+  } catch (e) {
+    statusEl.textContent = "";
+    toast("分析失败：" + e.message, "err");
+  }
+}
+
+function renderAnalysisResult(resultCard, genCard, a) {
+  resultCard.hidden = false;
+  const langs = (a.languages || []).map(l => `${l.lang} ${l.files}文件/${l.lines}行`).join(" · ");
+  const style = a.style || {};
+  const tooling = a.tooling || {};
+  const toolBadges = [];
+  if (tooling.tests) toolBadges.push("测试");
+  if (tooling.ci) toolBadges.push("CI");
+  if (tooling.lint) toolBadges.push("Lint");
+  if (tooling.docker) toolBadges.push("Docker");
+  if (tooling.types) toolBadges.push("类型");
+  const stackHtml = (a.stack || []).map(s => `<span class="chip" style="cursor:default">${escapeHtml(s)}</span>`).join("");
+
+  resultCard.innerHTML = `
+    <div class="card-head"><h3>分析结果 · ${escapeHtml(a.name || "项目")}</h3>
+      <span class="idx">${a.source === "github" ? "GitHub" : "zip"} · ${a.totalFiles} 文件 · ${a.totalLines} 行</span>
+    </div>
+    <div class="field"><label>语言分布</label><div style="font-size:13px">${escapeHtml(langs)}</div></div>
+    <div class="field-row">
+      <div class="field"><label>缩进</label><input type="text" value="${escapeAttr(style.indent || "")}" readonly></div>
+      <div class="field"><label>引号</label><input type="text" value="${escapeAttr(style.quotes || "")}" readonly></div>
+      <div class="field"><label>分号</label><input type="text" value="${escapeAttr(style.semicolons || "")}" readonly></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>命名风格</label><input type="text" value="${escapeAttr(style.naming || "")}" readonly></div>
+      <div class="field"><label>尾逗号</label><input type="text" value="${style.trailingComma ? "是" : "否"}" readonly></div>
+      <div class="field"><label>工程化</label><input type="text" value="${escapeAttr(toolBadges.join(" / ") || "无")}" readonly></div>
+    </div>
+    <div class="field"><label>技术栈</label><div class="chips" style="display:flex;flex-wrap:wrap;gap:6px">${stackHtml || '<span style="color:var(--muted)">未识别</span>'}</div></div>
+    ${a.entryPoints && a.entryPoints.length ? `<div class="field"><label>入口文件</label><div style="font-family:monospace;font-size:12.5px;color:var(--muted)">${escapeHtml(a.entryPoints.join(", "))}</div></div>` : ""}
+    <div class="field"><label>目录结构（顶层）</label><pre style="background:#f6f7f9;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12.5px;overflow:auto;max-height:220px;margin:0">${escapeHtml(a.tree || "")}</pre></div>
+    ${a.readme ? `<div class="field"><label>README 摘要</label><pre style="background:#f6f7f9;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12.5px;overflow:auto;max-height:160px;margin:0;white-space:pre-wrap">${escapeHtml(a.readme)}</pre></div>` : ""}
+  `;
+
+  // 生成条目区
+  renderGenSection(genCard, a);
+}
+
+function renderGenSection(genCard, a) {
+  genCard.hidden = false;
+  genCard.innerHTML = `
+    <div class="card-head"><h3>生成资料条目（可编辑后应用）</h3>
+      <button class="btn btn-sm" id="anaPolishBtn" type="button">✨ 用 AI 润色</button>
+    </div>
+    <p style="margin:0 0 14px;color:var(--muted);font-size:12.5px">AI 润色会把上方分析结果交给模型生成自然语言，仅供参考，请校对后再保存。优先使用本地 Ollama，不可用时自动切换到外部 API。</p>
+
+    <div class="field">
+      <label>知识条目 · 触发词 keywords（回车 / 逗号添加）</label>
+      <div id="anaKwBox" class="chip-input"></div>
+    </div>
+    <div class="field">
+      <label>知识条目 · answer（模型只能改写这句，不能加资料外内容）</label>
+      <textarea id="anaAnswer" rows="4">${escapeHtml(defaultKnowledgeAnswer(a))}</textarea>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--line);margin:18px 0">
+
+    <div class="field-row">
+      <div class="field"><label>项目名称 name</label><input type="text" id="anaProjName" value="${escapeAttr(a.name || "")}"></div>
+      <div class="field"><label>所属组织 org</label><input type="text" id="anaProjOrg" value="${escapeAttr(a.repoUrl ? "GitHub" : "")}"></div>
+    </div>
+    <div class="field"><label>项目背景 summary</label><textarea id="anaProjSummary" rows="2">${escapeHtml(a.readme ? a.readme.slice(0, 200).replace(/\s+/g, " ") + "…" : "")}</textarea></div>
+    <div class="field"><label>技术栈 stack（回车 / 逗号添加）</label><div id="anaStackBox" class="chip-input"></div></div>
+    <div class="field"><label>技术亮点 highlights（每行一条）</label><textarea id="anaProjHl" rows="3">${escapeHtml(defaultHighlights(a))}</textarea></div>
+    <div class="field"><label>可量化成果 metrics（标签=数值，每行一条，可留空）</label><textarea id="anaProjMetrics" rows="2" placeholder="如 代码行数=12000"></textarea></div>
+
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-primary" id="anaApplyBtn" type="button">应用到资料（加入项目 + 知识条目）</button>
+      <button class="btn btn-ghost" id="anaOnlyProjBtn" type="button">仅加入项目</button>
+    </div>
+  `;
+
+  // 触发词 chips
+  const kwArr = ["代码风格", "编码习惯", "代码能力", a.name || "项目"];
+  const kwBox = genCard.querySelector("#anaKwBox");
+  appendChipInput(kwBox, kwArr, (arr) => { genCard._kw = arr.slice(); });
+  genCard._kw = kwArr;
+
+  // 技术栈 chips
+  const stackArr = (a.stack || []).slice();
+  const stBox = genCard.querySelector("#anaStackBox");
+  appendChipInput(stBox, stackArr, (arr) => { genCard._stack = arr.slice(); });
+  genCard._stack = stackArr;
+
+  const polishBtn = genCard.querySelector("#anaPolishBtn");
+  probeAiKey().then(() => {
+    polishBtn.disabled = !aiKeyConfigured;
+    polishBtn.textContent = aiKeyConfigured ? "✨ 用 AI 润色" : "✨ 用 AI 润色（AI 不可用）";
+  });
+  polishBtn.addEventListener("click", () => aiPolish(a, genCard));
+
+  genCard.querySelector("#anaApplyBtn").addEventListener("click", () => applyAnalysis(a, genCard, true));
+  genCard.querySelector("#anaOnlyProjBtn").addEventListener("click", () => applyAnalysis(a, genCard, false));
+}
+
+function defaultKnowledgeAnswer(a) {
+  const style = a.style || {};
+  const parts = [];
+  parts.push(`该项目共 ${a.totalFiles} 个文件、约 ${a.totalLines} 行代码，主要技术栈包括 ${(a.stack || []).slice(0, 8).join("、") || "未识别"}。`);
+  parts.push(`代码风格方面：缩进 ${style.indent || "未知"}、偏好 ${style.quotes || "混合"} 引号、分号 ${style.semicolons || "混合"}、命名以 ${style.naming || "混合"} 为主。`);
+  if (a.tooling) {
+    const t = [];
+    if (a.tooling.tests) t.push("有测试");
+    if (a.tooling.ci) t.push("有 CI");
+    if (a.tooling.lint) t.push("有 Lint");
+    if (a.tooling.docker) t.push("有 Docker");
+    if (a.tooling.types) t.push("有类型检查");
+    if (t.length) parts.push(`工程化：${t.join("、")}。`);
+  }
+  return parts.join("");
+}
+
+function defaultHighlights(a) {
+  const style = a.style || {};
+  const lines = [
+    `项目规模：${a.totalFiles} 个文件，约 ${a.totalLines} 行代码`,
+    `技术栈：${(a.stack || []).slice(0, 6).join("、") || "未识别"}`,
+    `代码风格：${style.indent || "未知"} 缩进，${style.quotes || "混合"} 引号，${style.naming || "混合"} 命名`
+  ];
+  return lines.join("\n");
+}
+
+async function aiPolish(a, genCard) {
+  const btn = genCard.querySelector("#anaPolishBtn");
+  btn.disabled = true;
+  btn.textContent = "润色中…";
+  try {
+    const system = `你是一个简历助手。根据下方的代码项目静态分析结果，生成一段用于简历 AI 问答知识库的事实性描述，以及一个项目经历条目。
+规则：
+1. 只能使用分析结果中给出的事实，禁止编造业务内容、数据、公司名、上线效果。
+2. 知识条目 answer 要简洁，描述代码风格、技术栈、工程化能力。
+3. 项目条目 summary 要简短，highlights 列 3-5 条技术/工程亮点，metrics 可根据代码规模生成（如 代码行数=xxx），禁止虚构业务指标。
+4. 严格只返回 JSON，不要任何额外文字，格式：
+{"knowledge":{"keywords":["代码风格","编码能力","技术深度"],"answer":"..."},"project":{"name":"...","summary":"...","highlights":["...","..."],"stack":["..."],"metrics":[{"label":"...","value":"..."}]}}`;
+    const res = await apiPost("/api/chat", {
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: JSON.stringify(a) }
+      ],
+      // 不传 temperature：kimi-k3 系列只接受 temperature=1，由服务端按模型决定
+      max_tokens: 3000
+    });
+    const content = ((res.choices && res.choices[0] && res.choices[0].message) || {}).content || "";
+    const parsed = parseAiJson(content);
+    if (parsed) {
+      if (parsed.knowledge && Array.isArray(parsed.knowledge.keywords)) {
+        genCard._kw = parsed.knowledge.keywords.slice();
+        renderChips(genCard.querySelector("#anaKwBox"), genCard._kw);
+      }
+      if (parsed.knowledge && parsed.knowledge.answer) {
+        genCard.querySelector("#anaAnswer").value = parsed.knowledge.answer;
+      }
+      if (parsed.project) {
+        if (parsed.project.name) genCard.querySelector("#anaProjName").value = parsed.project.name;
+        if (parsed.project.summary) genCard.querySelector("#anaProjSummary").value = parsed.project.summary;
+        if (Array.isArray(parsed.project.highlights)) genCard.querySelector("#anaProjHl").value = parsed.project.highlights.join("\n");
+        if (Array.isArray(parsed.project.stack)) {
+          genCard._stack = parsed.project.stack.slice();
+          renderChips(genCard.querySelector("#anaStackBox"), genCard._stack);
+        }
+        if (Array.isArray(parsed.project.metrics)) {
+          genCard.querySelector("#anaProjMetrics").value = parsed.project.metrics.map(m => (m.label + "=" + m.value)).join("\n");
+        }
+      }
+      toast("AI 润色完成，请校对后应用", "ok");
+    } else {
+      toast("AI 返回无法解析，已保留原文（可手动填写）", "err");
+      console.log("[aiPolish] raw:", content);
+    }
+  } catch (e) {
+    toast("润色失败：" + e.message, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "✨ 用 AI 润色";
+  }
+}
+
+// 从 AI 返回文本里尽量提取 JSON 对象
+function parseAiJson(text) {
+  if (!text) return null;
+  // 直接解析
+  try { return JSON.parse(text); } catch (e) {}
+  // 提取第一个 { ... }
+  const m = text.match(/\{[\s\S]*\}/);
+  if (m) {
+    try { return JSON.parse(m[0]); } catch (e) {}
+  }
+  return null;
+}
+
+function renderChips(box, arr) {
+  // 复用 appendChipInput 的刷新逻辑：重建一个 chip-input 内部
+  const chipsBox = box.querySelector(".chips");
+  if (!chipsBox) return;
+  chipsBox.innerHTML = "";
+  arr.forEach(function (val, i) {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = val;
+    const x = document.createElement("button");
+    x.textContent = "×";
+    x.type = "button";
+    x.addEventListener("click", () => {
+      arr.splice(i, 1); renderChips(box, arr); markDirty();
+    });
+    chip.appendChild(x);
+    chipsBox.appendChild(chip);
+  });
+}
+
+function applyAnalysis(a, genCard, includeKnowledge) {
+  const name = genCard.querySelector("#anaProjName").value.trim();
+  if (!name) { toast("项目名称不能为空", "err"); return; }
+
+  // 构造项目条目
+  const project = {
+    name: name,
+    org: genCard.querySelector("#anaProjOrg").value.trim(),
+    period: "",
+    role: "",
+    summary: genCard.querySelector("#anaProjSummary").value.trim(),
+    highlights: genCard.querySelector("#anaProjHl").value.split("\n").map(s => s.trim()).filter(Boolean),
+    stack: (genCard._stack || []).slice()
+  };
+  const metricsText = genCard.querySelector("#anaProjMetrics").value.trim();
+  project.metrics = metricsText.split("\n").map(line => {
+    const idx = line.indexOf("=");
+    if (idx === -1) return null;
+    return { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+  }).filter(Boolean);
+  if (a.repoUrl) project.highlights.unshift("源码：" + a.repoUrl);
+
+  const list = draft.profile.projects || (draft.profile.projects = []);
+  list.push(project);
+
+  if (includeKnowledge) {
+    const kw = (genCard._kw || []).filter(Boolean);
+    const answer = genCard.querySelector("#anaAnswer").value.trim();
+    if (kw.length && answer) {
+      draft.knowledge.push({ keywords: kw, answer: answer });
+    }
+  }
+
+  markDirty();
+  toast("已加入草稿，请点右下角『保存并发布』生效", "ok");
+  // 切到项目 tab 让用户看到
+  showTab("projects");
+}
+
+// ---------- escape helpers ----------
+function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]); }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+$("loginForm").addEventListener("submit", submitLogin);
+$("logoutBtn").addEventListener("click", logout);
+init();
+</script>
+</body>
+</html>

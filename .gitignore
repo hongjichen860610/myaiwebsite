@@ -1,0 +1,28 @@
+# 环境变量与密钥，禁止提交
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# 隐私资料：原始简历 PDF 含个人信息，不入库
+陈洪机的简历.pdf
+
+# 产物：截图 / 报告 / 生成文件
+.screenshots/
+_artifacts/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
+# 依赖与日志
+node_modules/
+*.log
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
