@@ -317,17 +317,20 @@ const ASSET_TYPES = {
   ".png": "image/png",
   ".webp": "image/webp"
 };
+const CSS_TYPES = {
+  ".css": "text/css; charset=utf-8"
+};
 
-function serveAsset(req, res, pathname) {
-  const rel = decodeURIComponent(pathname.slice("/assets/".length));
-  const filePath = path.resolve(__dirname, "assets", rel);
-  const root = path.resolve(__dirname, "assets") + path.sep;
+function serveStatic(req, res, pathname, prefix, dir, types) {
+  const rel = decodeURIComponent(pathname.slice(prefix.length));
+  const filePath = path.resolve(__dirname, dir, rel);
+  const root = path.resolve(__dirname, dir) + path.sep;
   if (!filePath.startsWith(root)) {
     sendJson(res, 403, { ok: false, error: "禁止访问" });
     return;
   }
   const ext = path.extname(filePath).toLowerCase();
-  if (!ASSET_TYPES[ext]) {
+  if (!types[ext]) {
     sendJson(res, 404, { ok: false, error: "不支持的资源类型" });
     return;
   }
@@ -335,7 +338,7 @@ function serveAsset(req, res, pathname) {
     sendJson(res, 405, { ok: false, error: "仅支持 GET / HEAD" }, { Allow: "GET, HEAD" });
     return;
   }
-  serveFile(res, filePath, ASSET_TYPES[ext]);
+  serveFile(res, filePath, types[ext]);
 }
 
 function serveAdmin(req, res) {
@@ -1335,7 +1338,11 @@ const server = http.createServer(function (req, res) {
     return;
   }
   if (pathname.startsWith("/assets/")) {
-    serveAsset(req, res, pathname);
+    serveStatic(req, res, pathname, "/assets/", "assets", ASSET_TYPES);
+    return;
+  }
+  if (pathname.startsWith("/css/")) {
+    serveStatic(req, res, pathname, "/css/", "css", CSS_TYPES);
     return;
   }
 

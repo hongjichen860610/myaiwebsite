@@ -1,0 +1,6 @@
+  /* ---------- 布局 ---------- */
+  .page{
+    max-width:1200px;margin:0 auto;padding:0 32px 110px;
+    display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:60px;align-items:start;
+  }
+  .content{min-width:0}
