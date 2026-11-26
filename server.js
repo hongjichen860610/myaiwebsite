@@ -320,6 +320,9 @@ const ASSET_TYPES = {
 const CSS_TYPES = {
   ".css": "text/css; charset=utf-8"
 };
+const JS_TYPES = {
+  ".js": "text/javascript; charset=utf-8"
+};
 
 function serveStatic(req, res, pathname, prefix, dir, types) {
   const rel = decodeURIComponent(pathname.slice(prefix.length));
@@ -1343,6 +1346,10 @@ const server = http.createServer(function (req, res) {
   }
   if (pathname.startsWith("/css/")) {
     serveStatic(req, res, pathname, "/css/", "css", CSS_TYPES);
+    return;
+  }
+  if (pathname.startsWith("/js/")) {
+    serveStatic(req, res, pathname, "/js/", "js", JS_TYPES);
     return;
   }
 
