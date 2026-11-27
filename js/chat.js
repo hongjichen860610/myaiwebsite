@@ -101,7 +101,8 @@ async function sendMessage(raw) {
     answer = result.text;
   } catch (error) {
     console.warn("[AI 简历助手] 生成失败，已回退到本地知识库：", error);
-    answer = search(question) || fallbackAnswer();
+    const hits = search(question);
+    answer = hits.length ? hits[0].answer : fallbackAnswer();
   }
 
   hideTyping();

@@ -32,3 +32,6 @@ node_modules/
 Thumbs.db
 .idea/
 .vscode/
+
+# 数据迁移临时备份
+*.bak
